@@ -2,6 +2,10 @@
 
 Observations and follow-ups recorded during reviews/audits. Triaged 2026-06-12 against the minimal core: entries resolved by shipped versions removed; entries referencing the retired template structure (workflow/*.md, the pm-* roster, gen/) re-stated as minimal-core touchpoints; the essence kept, the archaeology dropped (git history holds the originals).
 
+## `explore-a-codebase` contract point missing from tool-map.json — 2026-06-12
+
+`tool-map.json` maps `spawn-a-sub-agent` generically but has no entry for specialized read-only exploration (Claude Code's `Explore` subagent type). On Claude Code the orchestrator passes `subagent_type: "Explore"` directly (works, but undocumented in the adapter); on OpenCode there is no registered analog — the model must infer "use a generic task with read-only instructions." Fix: add `explore-a-codebase` row to `tool-map.json` with `claude: "Agent(subagent_type=Explore)"` / `opencode: "task(read-only instructions)"`. Small fixup in tool-map.json + one line in docs/architecture.md.
+
 ## `profile: yolo` — a named escape hatch OUTSIDE the reliability guarantee — Operator decision 2026-06-12, queue position ~1.7
 
 The Operator wants a fourth profile for hypothesis-checking and prototyping: the orchestrator does EVERYTHING alone — no Builder spawn, no per-change Reviewer, AND **no batch review before merge** (the mechanical merge-gate goes off for a yolo project). The plan collapses into a RUNNING SPEC kept current during the run; the durable artifact is the docs, which survive even when the code is discarded. Conscious tech-debt for maximum speed; the code is then either brought to standards or rewritten from scratch against the spec through the normal loop.
@@ -14,15 +18,16 @@ The Operator wants a fourth profile for hypothesis-checking and prototyping: the
 - **Compensating control:** the audit cadence becomes yolo's PRIMARY safety net (not a supplement) — offered every N features as a full-review "bring to standards" sweep; the yolo setup framing states this is the catch-up gate.
 - Touches: PROTOCOL.md manifesto + `## Project config` + invariant 3 phrasing; the merge-gate deny + engine `projectProfile`; `disciplined-pipeline.md` / `cross-session-enforcement.md` contracts; the product promise; setup's profile dialog (the fourth option, with brutally honest disclosure: debt is conscious, the mechanical gate is off, code-discard is a legal outcome); rigor-profile + merge-gate tests. Its own threat-discovery-grade pass on the gate-off surface.
 
-## RENAME ai-pm-protocol → ai-dev-protocol — MAJOR 5.0.0, STANDALONE — Operator decision 2026-06-12
+## RENAME ai-dev-protocol → ai-dev-protocol — MAJOR 5.0.0, STANDALONE — Operator decision 2026-06-12
 
 Operator: "dev" is honester than "pm" (it is AI-assisted DEVELOPMENT, not just project management). FULL depth, its own feature, NOT bundled with anything (it is the first-ever MAJOR; the migration story gets exercised here). Operator flag: "префиксы агентов и скиллы и всё потянет за собой" — the surface is the whole role nomenclature, not just paths.
 
 **Scope (the whole "pm" nomenclature, resolved consistently):**
-- Repo `ai-pm-protocol` → `ai-dev-protocol` (clean, no -uni; GitHub redirects old URL); package + bin name; titles/prose.
-- **Agent prefixes (fork to resolve at planning):** `ai-pm` → `ai-dev` (orchestrator); `pm-builder`/`pm-reviewer` → `dev-builder`/`dev-reviewer` (the `pm-` prefix is the same "pm" being renamed) — OR drop the prefix to `builder`/`reviewer`. Decide at plan; whatever it becomes, the config `roles.*.agent` bindings, both adapters' assembled filenames, and every spawn-by-id follow.
-- **Skills/commands:** `/pm-setup` → `/dev-setup` (the command body, both platforms' command frontmatter, the `.claude/commands/` + `.opencode/commands/` filenames, every doc reference).
-- **Internals:** `.ai-pm/` → `.ai-dev/` (state, plans, reviews, audit, 8d, backlog, tooling carve-out); `ai-pm.config.json` → `ai-dev.config.json`; every path in hooks, `engine.mjs`, `deny-rules.json` (the tooling/stamp/state path patterns), tests, INSTALL.md.
+
+- Repo `ai-dev-protocol` → `ai-dev-protocol` (clean, no -uni; GitHub redirects old URL); package + bin name; titles/prose.
+- **Agent prefixes (fork to resolve at planning):** `ai-pm` → `ai-dev` (orchestrator); `dev-builder`/`dev-reviewer` → `dev-builder`/`dev-reviewer` (the `pm-` prefix is the same "pm" being renamed) — OR drop the prefix to `builder`/`reviewer`. Decide at plan; whatever it becomes, the config `roles.*.agent` bindings, both adapters' assembled filenames, and every spawn-by-id follow.
+- **Skills/commands:** `/dev-setup` → `/dev-setup` (the command body, both platforms' command frontmatter, the `.claude/commands/` + `.opencode/commands/` filenames, every doc reference).
+- **Internals:** `.ai-dev/` → `.ai-dev/` (state, plans, reviews, audit, 8d, backlog, tooling carve-out); `ai-dev.config.json` → `ai-dev.config.json`; every path in hooks, `engine.mjs`, `deny-rules.json` (the tooling/stamp/state path patterns), tests, INSTALL.md.
 - INSTALL `## Upgrade` gains the MAJOR what-to-rename entry (the first real content for that path); the F4 migration test rides (installer re-run over prior-version artifacts). Cheapest now at 0 downstreams.
 - Honesty: a MAJOR-bump-confirmation is itself a backlog item (salvaged residual) — this rename is the live case to wire it.
 
@@ -35,6 +40,7 @@ Operator philosophy: "не вылезать за пределы проекта �
 Closes the honest residual in the permissions item: the engine cannot trace paths THROUGH an interpreter, so instead of tracing it DETECTS opacity and treats opacity as the signal — a bash act that runs inline interpreter code (`python3 -c`, `node -e`, `perl -e`, `sh -c <blob>`), decodes-then-executes (`base64 -d | sh`, `curl … | sh`), or `eval`s a substitution is statically un-boundary-checkable. The unfelt→felt prosthesis from the META deficit catalog: an obfuscated escape looks like clean bash; the classifier makes it felt.
 
 **Design forks (why this is a small FEATURE, not a fixup — deny-layer false-positive tuning needs review):**
+
 - **ask/warn, NOT deny** — a hard deny on every `python3 -c` breaks legitimate work, and a false-positive on the deny layer is worse than nothing (trains bypass). The opacity verdict escalates to ask (persona on OpenCode, no ask-hook), never a hard block; worst case is one confirmation.
 - **Anti-ritual tuning** — to avoid dinging `python3 -c "print(1)"`, the classifier peers INSIDE the opaque blob for boundary-relevant tokens (absolute path, `..`, a network call) and flags only those. This tuning is the expensive, review-worthy part.
 - **Honest ceiling** — heuristic = arms race; it raises the bar on accidental/obvious dirty bash (the Operator's "ловить совсем грязный"), it does NOT make the boundary airtight vs an adversary. The label must say so. Airtight = a cwd-jail/sandbox, separate heavy work.
@@ -48,7 +54,7 @@ Closes the honest residual in the permissions item: the engine cannot trace path
 
 **Decision (Operator, 2026-06-12):** the `[who] × [speed↔quality]` matrix was retracted from `README.md` (4.10.3) — the `[who]` axis had zero implementation and its tech-lead cell ("you see the diff") contradicted `PROTOCOL.md` "Never show code". The honest surface today is the one-axis `profile` dial.
 
-**If/when the non-technical-PM bet is taken** (it is a recorded hypothesis in `docs/product.md` §1, not a served segment), the axis is its own coherent epic, not scattered fixes: a `scenario` (or `operator`) key in `ai-pm.config.json` with 2–3 presets (e.g. `pm` / `tech-lead`) parameterizing diff visibility, question depth, and the auto-decide ceiling; amending "Never show code" into a scenario-conditioned rule; and a friendlier on-ramp. (The lighter-profile compensator — the Reviewer's review-time product-fit check — is a floor checklist item since 4.11.0; the epic may deepen it.)
+**If/when the non-technical-PM bet is taken** (it is a recorded hypothesis in `docs/product.md` §1, not a served segment), the axis is its own coherent epic, not scattered fixes: a `scenario` (or `operator`) key in `ai-dev.config.json` with 2–3 presets (e.g. `pm` / `tech-lead`) parameterizing diff visibility, question depth, and the auto-decide ceiling; amending "Never show code" into a scenario-conditioned rule; and a friendlier on-ramp. (The lighter-profile compensator — the Reviewer's review-time product-fit check — is a floor checklist item since 4.11.0; the epic may deepen it.)
 
 ## Vendor-watch standing item — platform absorption — 2026-06-12 (from product analysis, finding 4)
 
@@ -63,7 +69,7 @@ The proactive trigger is in (orchestrator `## Audit`: offer after ~5 shipped fea
 - **Whole-tree code-quality sweep** — legacy or never-diff-reviewed code; cross-cutting patterns invisible per-diff (architectural and functional/integration review types).
 - **Instruction-file overreach** — decision/security content sitting in a harness instruction file (CLAUDE.md-class) whose own pointer says it is owned by `docs/` canon; remediation is move-not-copy.
 - **Asymmetric failure-naming** (8D ceremony-drift, D7) — a dial/gate whose failure modes are named on ONE side only breeds drift to the unnamed side: sweep for it (doc-quality names bloat but not brevity-to-uselessness; audit cadence names under- but not over-auditing; the profile dial named under-rigor but not over-ceremony until 4.20.0). Each found asymmetry is a candidate fix.
-- **Single-source drift includes `.ai-pm/state/current.md`** (8D pointer-lied, D7) — the resume pointer is durable canon, not exempt from invariant 6; the audit's single-source-drift dimension scans it for restated facts (version, shipped-set, PR state) that belong to the tag / CHANGELOG / forge.
+- **Single-source drift includes `.ai-dev/state/current.md`** (8D pointer-lied, D7) — the resume pointer is durable canon, not exempt from invariant 6; the audit's single-source-drift dimension scans it for restated facts (version, shipped-set, PR state) that belong to the tag / CHANGELOG / forge.
 
 ## `research` as a doing side-tool — 2026-06-11 (post-restructure queue)
 
@@ -75,7 +81,7 @@ Today the loop is strictly serial: one session drives one feature, one branch pe
 
 ## npm registry publish — external half of npx distribution — 2026-06-12
 
-The packaging shipped 4.17.0 (`npx github:aadegtyarev/ai-pm-protocol-uni <target>` works now). What remains is external: the Operator's npm account, name-availability check (scoped fallback), `npm publish`, optionally publish-on-tag CI (NPM_TOKEN secret riding the existing auto-tag workflow). Then the README lead becomes `npx ai-pm-protocol@latest`.
+The packaging shipped 4.17.0 (`npx github:aadegtyarev/ai-dev-protocol-uni <target>` works now). What remains is external: the Operator's npm account, name-availability check (scoped fallback), `npm publish`, optionally publish-on-tag CI (NPM_TOKEN secret riding the existing auto-tag workflow). Then the README lead becomes `npx ai-dev-protocol@latest`.
 
 ## ad-md-editor rollout — first real downstream — 2026-06-11
 
@@ -88,7 +94,7 @@ The Operator asked to roll the protocol into ad-md-editor; this repo's session c
 **Decided shape (no new orchestrator section — the length watch holds):**
 
 1. **Content procedure → `## Doc bootstrap` source mode** (~5-6 lines): old-protocol docs present ⇒ the Builder drafts FROM the old docs as primary source, compressed into the new templates under the new ceilings; the TREE is the verification ground — an old-doc claim contradicting the code surfaces as a finding, never migrates silently; old docs are DELETED once their truth moves (supersede, one home); then a comment de-water pass over the code (wall comments duplicating docs go; the local *why* stays — invariant 6 on code); then a closing whole-project audit is offered.
-2. **Wire runbook → `INSTALL.md ## Upgrade`**: the mechanical half — the one-command install lays the new structure; cleanup of the old surface (old pm-* agent roster, WORKFLOW.md, `.ai-pm/tooling` submodule/symlinks); the MAJOR-bump framing already lives there.
+2. **Wire runbook → `INSTALL.md ## Upgrade`**: the mechanical half — the one-command install lays the new structure; cleanup of the old surface (old pm-* agent roster, WORKFLOW.md, `.ai-dev/tooling` submodule/symlinks); the MAJOR-bump framing already lives there.
 3. **F4 migration test** rides: installer re-run over a PRIOR version's artifacts (the idempotency test covers only fresh installs).
 
 Live case: nula (execution still in ITS session when the WAIT lifts). Harness note kept: a long OpenCode session can hit a SQLite session-insert failure killing every spawn — restart; an environment crash is a failed gate, never a license to self-substitute (invariant 3).
@@ -108,7 +114,7 @@ A generator for features and an audit lens, not a feature. Take a structural LLM
 Seed catalog (deficit → prosthesis → coverage):
 
 | Deficit | Felt? | Prosthesis | Coverage today |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Hallucinated call-graph edges | no | LSP / tree-sitter graph as ground-truth input | contracts (partial); no tool |
 | Single-path sim, misses interleavings | no | property test / harness instead of mental run | concurrency module checklist (4.16.0); harness tool still open |
 | Quantity blindness (loop ×10000) | no | execute on representative inputs | performance module checklist (4.16.0); real-run still optional |
@@ -136,7 +142,9 @@ Survey both platforms' built-in tools/agents and map which are safe for the orch
 
 ## state/current.md + backlog.md tracking — gitignore or feature-branch-only? — 2026-06-10
 
-The resume pointer is per-session orchestrator bookkeeping yet git-tracked — a recurring tension with "never commit to main": a state refresh between features has no branch to ride (hit again 2026-06-12: the merge-gate denies a stampless push of main, so state rode the next feature branch). Decide: gitignore `.ai-pm/state/` (pure local pointer) vs keep tracked-but-feature-branch-only (current de-facto). Same question, lighter, for `backlog.md`.
+The resume pointer is per-session orchestrator bookkeeping yet git-tracked — a recurring tension with "never commit to main": a state refresh between features has no branch to ride (hit again 2026-06-12: the merge-gate denies a stampless push of main, so state rode the next feature branch). Decide: gitignore `.ai-dev/state/` (pure local pointer) vs keep tracked-but-feature-branch-only (current de-facto). Same question, lighter, for `backlog.md`.
+
+**Design discussion (2026-06-12):** The root cause is the merge-gate blocking any push to main without a review stamp — state files have no stamp. Options evaluated: (a) exempt `state/` topics from the merge-gate check (but exempting a branch topic from stamp check also exempts its MERGE to main, a security hole without content verification); (b) a separate `state` branch pushed via `git push <remote> HEAD:feature/state` — topic resolves to `state`, exempt list works, but merge to main still exempt; (c) content-aware gate (check git diff for state-only changes — requires shell exec from engine, significant surface change); (d) state on a separate remote ref that is never merged to main (e.g. `refs/notes/`). Decision: design this properly as a separate feature; the current `state/current.md` on main via feature branches is the interim. Whoever designs this: the security constraint is that the carve-out must NOT allow non-state content to bypass the merge-gate.
 
 ## deepseek-v4-flash as the OpenCode default cross-model reviewer — 2026-06-10 (idea)
 
