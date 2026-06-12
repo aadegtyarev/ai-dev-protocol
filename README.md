@@ -76,3 +76,7 @@ This repo develops itself under its own protocol — the same loop, roles, and c
 ## License
 
 MIT — free use, including commercial. Modifications may stay closed; there is no copyleft.
+
+## History
+
+Previously published at [wirenboard/ai-pm-protocol](https://github.com/wirenboard/ai-pm-protocol). Same author, no other contributors — moved to a personal account and renamed to reflect what the protocol actually is.

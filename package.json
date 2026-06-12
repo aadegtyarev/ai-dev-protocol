@@ -6,7 +6,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/aadegtyarev/ai-dev-protocol-uni.git"
+    "url": "git+https://github.com/aadegtyarev/ai-dev-protocol.git"
   },
   "bin": {
     "ai-dev-protocol": "src/adapter/install.mjs"
