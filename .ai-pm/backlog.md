@@ -14,9 +14,31 @@ The Operator wants a fourth profile for hypothesis-checking and prototyping: the
 - **Compensating control:** the audit cadence becomes yolo's PRIMARY safety net (not a supplement) — offered every N features as a full-review "bring to standards" sweep; the yolo setup framing states this is the catch-up gate.
 - Touches: PROTOCOL.md manifesto + `## Project config` + invariant 3 phrasing; the merge-gate deny + engine `projectProfile`; `disciplined-pipeline.md` / `cross-session-enforcement.md` contracts; the product promise; setup's profile dialog (the fourth option, with brutally honest disclosure: debt is conscious, the mechanical gate is off, code-discard is a legal outcome); rigor-profile + merge-gate tests. Its own threat-discovery-grade pass on the gate-off surface.
 
+## RENAME ai-pm-protocol → ai-dev-protocol — MAJOR 5.0.0, STANDALONE — Operator decision 2026-06-12
+
+Operator: "dev" is honester than "pm" (it is AI-assisted DEVELOPMENT, not just project management). FULL depth, its own feature, NOT bundled with anything (it is the first-ever MAJOR; the migration story gets exercised here). Operator flag: "префиксы агентов и скиллы и всё потянет за собой" — the surface is the whole role nomenclature, not just paths.
+
+**Scope (the whole "pm" nomenclature, resolved consistently):**
+- Repo `ai-pm-protocol` → `ai-dev-protocol` (clean, no -uni; GitHub redirects old URL); package + bin name; titles/prose.
+- **Agent prefixes (fork to resolve at planning):** `ai-pm` → `ai-dev` (orchestrator); `pm-builder`/`pm-reviewer` → `dev-builder`/`dev-reviewer` (the `pm-` prefix is the same "pm" being renamed) — OR drop the prefix to `builder`/`reviewer`. Decide at plan; whatever it becomes, the config `roles.*.agent` bindings, both adapters' assembled filenames, and every spawn-by-id follow.
+- **Skills/commands:** `/pm-setup` → `/dev-setup` (the command body, both platforms' command frontmatter, the `.claude/commands/` + `.opencode/commands/` filenames, every doc reference).
+- **Internals:** `.ai-pm/` → `.ai-dev/` (state, plans, reviews, audit, 8d, backlog, tooling carve-out); `ai-pm.config.json` → `ai-dev.config.json`; every path in hooks, `engine.mjs`, `deny-rules.json` (the tooling/stamp/state path patterns), tests, INSTALL.md.
+- INSTALL `## Upgrade` gains the MAJOR what-to-rename entry (the first real content for that path); the F4 migration test rides (installer re-run over prior-version artifacts). Cheapest now at 0 downstreams.
+- Honesty: a MAJOR-bump-confirmation is itself a backlog item (salvaged residual) — this rename is the live case to wire it.
+
 ## OpenCode default permissions — boundary-strict, rest-permissive — Operator design 2026-06-12
 
 Operator philosophy: "не вылезать за пределы проекта без спросу, остальное — на духу." Maps to the existing enforcement taxonomy: the project boundary is already the strictest tier (the plugin's mechanical outside-root deny, invariant 2 — independent of any permission setting). The gap: OpenCode's NATIVE permissions can ask before bash/edit ON TOP of the plugin (double-ask ritual). Fix: the generated `opencode.json` default `permission` block becomes `{ "edit": "allow", "bash": "allow", "webfetch": "allow" }` (plus the existing `"question": "allow"`) — the plugin is the SOLE guard, full speed inside the project, mechanical deny at the boundary. Ask-class (force-push, remote mutate) already falls to persona on OpenCode (no ask-hook). One INSTALL line names the division of labor (plugin = boundary mechanical; native permission = speed dial for the rest). **Honest residual to record in that line:** the bash boundary is best-effort (the engine parses obvious path tokens; an obfuscated escape like `python3 -c "open('/abs')"` carries none) — exact on read/write/edit tools, best-effort on bash; airtight bash is a separate heavy hardening (cwd-jail), out of scope. webfetch=allow because research needs it; the exfil axis (sending data out) is a separate persona rule, not a filesystem-boundary concern. Pending Operator's choice: own small feature, or attach to the rename pass (which already retouches the adapter).
+
+## Opaque-bash classifier — boundary opacity as the signal — Operator idea 2026-06-12 (pairs with the OpenCode-permissions item above)
+
+Closes the honest residual in the permissions item: the engine cannot trace paths THROUGH an interpreter, so instead of tracing it DETECTS opacity and treats opacity as the signal — a bash act that runs inline interpreter code (`python3 -c`, `node -e`, `perl -e`, `sh -c <blob>`), decodes-then-executes (`base64 -d | sh`, `curl … | sh`), or `eval`s a substitution is statically un-boundary-checkable. The unfelt→felt prosthesis from the META deficit catalog: an obfuscated escape looks like clean bash; the classifier makes it felt.
+
+**Design forks (why this is a small FEATURE, not a fixup — deny-layer false-positive tuning needs review):**
+- **ask/warn, NOT deny** — a hard deny on every `python3 -c` breaks legitimate work, and a false-positive on the deny layer is worse than nothing (trains bypass). The opacity verdict escalates to ask (persona on OpenCode, no ask-hook), never a hard block; worst case is one confirmation.
+- **Anti-ritual tuning** — to avoid dinging `python3 -c "print(1)"`, the classifier peers INSIDE the opaque blob for boundary-relevant tokens (absolute path, `..`, a network call) and flags only those. This tuning is the expensive, review-worthy part.
+- **Honest ceiling** — heuristic = arms race; it raises the bar on accidental/obvious dirty bash (the Operator's "ловить совсем грязный"), it does NOT make the boundary airtight vs an adversary. The label must say so. Airtight = a cwd-jail/sandbox, separate heavy work.
+- Mechanism sits beside the just-hardened bash verb/heredoc parsing (`engine.mjs`); composes with the OpenCode-permissions item (same bash-boundary surface) — do them as one pass.
 
 ## Audit 4.19.0 Low-2 — orchestrator length watch — 2026-06-12
 

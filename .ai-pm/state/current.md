@@ -2,18 +2,18 @@
 
 > Resume pointer — READ FIRST, by this exact path. Deferred detail: `.ai-pm/backlog.md`. History: commits + CHANGELOG.
 
-**Status (2026-06-12).** Main version = the latest git tag (`git describe --tags`) / `package.json`; recent ships = the CHANGELOG top; open PRs = the forge (`gh pr list`). This pointer does NOT restate them (invariant 6 — a restated number drifts at the next merge; this very 8D). **Active:** `fix/pointer-no-restate` (this fix). Otherwise: working tree clean, resume from here.
+**Status (2026-06-12).** Main version = the latest git tag (`git describe --tags`) / `package.json`; recent ships = the CHANGELOG top; open PRs = the forge (`gh pr list`). This pointer does NOT restate them (invariant 6 — a restated number drifts at the next merge; the 4.20.1 8D). **Active:** none — working tree carries uncommitted `.ai-pm/` bookkeeping (backlog + this pointer) that rides the next feature branch (the merge-gate denies a stampless main push). Resume from here.
 
 ## Recent direction (the why, not the version log — that is CHANGELOG's)
 The session's arc: onboarding symmetry (doc bootstrap, project inception, threat discovery), the capability-module catalog (2→10), then a hardening run — merge-gate parsing + traversal, and two process 8Ds: stacked-merge git discipline, and proportionality-by-default (the dial's default flipped to `solo`, the floor untouched). Detail in CHANGELOG; rationale in `docs/decisions/` and commit history.
 
 ## Up next — Operator-ordered queue (nothing started; each needs the Operator's word)
-1. **`profile: yolo`** — a named escape hatch OUTSIDE the reliability guarantee (cuts the mechanical merge-gate). CONSTITUTIONAL amendment, not a profile addendum — full design in `.ai-pm/backlog.md`; needs its own threat pass + honest manifesto reframe (full/lite/solo = guarantee profiles; yolo keeps only the Operator's explicit merge word; audit cadence is its compensator).
-2. **RENAME → `ai-dev-protocol`, MAJOR 5.0.0** (Operator decision: FULL depth — repo to `ai-dev-protocol` (clean, no -uni), package/bin/titles, AND internals `.ai-pm/`→`.ai-dev/`, `ai-pm.config.json`→`ai-dev.config.json`, agent id `ai-pm`→`ai-dev`, every path in hooks/engine/tests; INSTALL Upgrade gains the MAJOR what-to-rename entry + F4 migration test rides — cheapest now at 0 downstreams). First-ever MAJOR; the migration story is exercised here.
-3. **Old-protocol migration** (design DECIDED — see backlog: docs-first source mode in `## Doc bootstrap` + wire runbook in INSTALL `## Upgrade`; write in post-rename names).
-4. **modularity module** — boundary judgment vs architecture.md + boundary/dependency-linter mention in setup (numeric thresholds = project linter config).
-5. **plan-adversary** — adversarial review of the plan draft (fork at planning: Reviewer mode vs capability module).
-6. **downstream feedback-as-issues** — When-something-is-off extension + `.github` issue template; ask-class consent covers opt-in.
+Detail for each in `.ai-pm/backlog.md`; sequence is the Operator's (not all locked).
+1. **OpenCode security bundle** — boundary-strict default permissions (`{edit,bash,webfetch}: allow`, plugin = sole guard) + opaque-bash classifier (opacity→ask/warn, anti-ritual tuned, honest non-airtight ceiling). One pass, same bash-boundary surface. Operator-recommended BEFORE rename (cleaner deny-layer review).
+2. **RENAME → `ai-dev-protocol`, MAJOR 5.0.0 — STANDALONE** (Operator: rename alone, it pulls the whole "pm" nomenclature — agent prefixes `pm-*`/`ai-pm`, the `/pm-setup` skill, `.ai-pm/`, `ai-pm.config.json`, every path). First-ever MAJOR; exercises the migration + version-bump-confirmation story. Full scope in backlog.
+3. **`profile: yolo`** — constitutional escape hatch OUTSIDE the guarantee (cuts the mechanical merge-gate); its own threat pass + manifesto reframe. Full design in backlog.
+4. **Old-protocol migration** (design DECIDED — docs-first bootstrap mode + INSTALL Upgrade runbook; post-rename names).
+5. **modularity module**; 6. **plan-adversary** (fork: Reviewer mode vs module); 7. **downstream feedback-as-issues**.
 
 Also in `.ai-pm/backlog.md`: ad-md-editor rollout (its own session, post-rename); audit Low-2 (orchestrator.md length watch); version-bump-confirmation policy; per-seat model matrix; parallel-work epic; npm registry publish (external).
 
