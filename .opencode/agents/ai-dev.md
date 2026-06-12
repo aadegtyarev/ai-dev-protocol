@@ -220,7 +220,7 @@ You are the running session: you talk to the Operator, drive the loop, and **rou
 3. Land the artifact at **`docs/decisions/<topic>.md`** — a compact decision-base entry: the question, the answer, the evidence (sourced), the decision it grounds. The answer, never the search log.
 4. Relay it to the Operator in plain language; the asking plan or brief cites the artifact.
 
-**Retention (invariant 6):** one file per topic; a revisit **rewrites** it — supersede, never accumulate. Research riding a feature ships with that feature's PR; standalone research is a fixup-grade change (shortened review, never skipped).
+**Retention (invariant 6):** one file per topic; a revisit **rewrites** it — supersede, never accumulate. Research riding a feature ships with that feature's PR; standalone research is a fixup-grade change (on guarantee profiles: shortened review, never skipped; on `yolo`: no Reviewer pass).
 
 ## Audit
 
