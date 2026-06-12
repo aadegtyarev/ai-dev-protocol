@@ -3,6 +3,20 @@
 Observations and follow-ups recorded during reviews/audits. Triaged 2026-06-12 against the minimal core: entries resolved by shipped versions removed; entries referencing the retired template structure (workflow/*.md, the pm-* roster, gen/) re-stated as minimal-core touchpoints; the essence kept, the archaeology dropped (git history holds the originals).
 
 
+## Downstream field report: GUI plan/review needs a user-flow check — ad-md-editor, 2026-06-13
+
+Two concrete bugs from the first downstream, both caught by the same missing check.
+
+**Bug A — DOM lifecycle race.** Editor initializer called before Svelte rendered the container (`containerEl === null`); `_createEditor` silently exited; status flipped to "ready" and the container appeared, but the editor was never created → blank white pane. Root: the plan didn't model the reactive-framework lifecycle (DOM element appears only after state change; side-effects that depend on DOM must run in `onMount`/`$effect`, not in event handlers). Reviewer had no checklist item for "init order / DOM element availability."
+
+**Bug B — No configuration test button.** The plan treated translation as "works or not" and assumed the user would validate the API key by opening a file. A Test button in settings gives a 2-second verdict; without it the user guesses: key, network, endpoint. For any app whose core feature depends on an external service, **configuration verification is part of the walking skeleton**, not a nice-to-have.
+
+**Common root (downstream self-diagnosis):** both bugs follow from optimizing for "compiled" instead of "user can complete the target action." The full quality loop (compile → lint → tests → code review) contains no runtime UX-flow check.
+
+**Proposed check (downstream session):** at planning time, require the Builder to enumerate 3+ user steps with the expected UI element and action for each. "List 3 steps the user will take and for each: what UI element will they see, what action will they take." 30 seconds at plan time; catches both bugs before code is written.
+
+**Fix candidates:** (1) Builder plan checklist for GUI apps gains a "user flow" requirement — enumerate the critical path as (step, UI element, action) tuples; (2) Reviewer checklist for GUI gains two dimensions: "init order / DOM lifecycle awareness" and "external-service-dependent config must include a verification flow"; (3) `## Project inception`'s walking skeleton note for GUI adds: for apps depending on external services, configuration validation (a test action the user can invoke) is part of the minimal skeleton.
+
 ## Downstream field report: README gap at inception — ad-md-editor, 2026-06-13
 
 `## Project inception` prescribes `docs/architecture.md`, `docs/product.md`, threat-model — but not README. For an OSS project (`kind: code` / `mixed`), README is the primary discovery surface (GitHub landing, install instructions, the answer to "how a new user finds out" — the brief gap the downstream marked `[?]`). The harness "NEVER create .md files proactively" suppresses it further: the downstream Builder followed the harness rule and created none.
