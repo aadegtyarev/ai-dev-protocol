@@ -159,6 +159,16 @@ const FIXTURE = [
   { name: "allow-spawn-dev-role", expect: "allow",
     claude: { tool_name: "Task", tool_input: { subagent_type: "dev-builder" } },
     opencode: { tool: "task", args: { subagent_type: "dev-builder" } } },
+
+  // yolo profile turns the merge-gate OFF — an unstamped push on a yolo project allows.
+  // Uses a dedicated yolo root so only this case sees that profile.
+  { name: "yolo-merge-gate-off", expect: "allow", root: (() => {
+      const r = fs.mkdtempSync(path.join(os.tmpdir(), "ai-dev-yolo-"));
+      fs.writeFileSync(path.join(r, "ai-dev.config.json"), '{ "profile": "yolo" }');
+      return r;
+    })(),
+    claude: { tool_name: "Bash", tool_input: { command: "git push origin feature/foo" } },
+    opencode: { tool: "bash", args: { command: "git push origin feature/foo" } } },
 ];
 
 // ── 1. PARITY ────────────────────────────────────────────────────────────────

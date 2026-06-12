@@ -315,7 +315,9 @@ function productBriefFilled(root) {
 function projectProfile(root) {
   try {
     const cfg = JSON.parse(fs.readFileSync(path.join(path.resolve(root), "ai-dev.config.json"), "utf8"));
-    return cfg.profile === "full" || cfg.profile === "lite" ? cfg.profile : "solo";
+    if (cfg.profile === "full" || cfg.profile === "lite") return cfg.profile;
+    if (cfg.profile === "yolo") return "yolo"; // only an explicit value enters the escape hatch
+    return "solo"; // absent / unrecognised / malformed ⇒ solo (never yolo by default)
   } catch { return "solo"; }
 }
 
@@ -358,7 +360,7 @@ const PREDICATES = {
     // (self-patch), boundary, truncation, merge-gate, and stamp-write denies are
     // SEPARATE predicates and untouched, so the floor never relaxes (`## Project config`).
     const profile = projectProfile(input.root);
-    if (profile === "lite" || profile === "solo") return false;
+    if (profile === "lite" || profile === "solo" || profile === "yolo") return false;
     const ow = config.orchestrator_writable;
     return writeTargetsOf(input).some((t) => {
       const r = resolveTarget(input.root, t);
@@ -390,6 +392,7 @@ const PREDICATES = {
   },
   mergeWithUnstampedReview(input) {
     if (!/git\s+(merge|push)\b/.test(input.command || "")) return false;
+    if (projectProfile(input.root) === "yolo") return false; // gate explicitly off — Operator's merge word is the only remaining check
     const topic = resolveMergeTopic(input.command, input.root);
     if (!topic) return false; // unresolved topic ⇒ the sibling ask rule (mergeTopicUnresolvable), never a silent pass
     return !reviewStampSatisfied(input.root, topic);
