@@ -21,6 +21,7 @@ is what the Operator sees).
 | **Stakeholder sweep** | Who else is affected and never mentioned — admin, support, the person who pays, the person who migrates away? One line each. |
 | **Analogy transfer** | "What is the closest product that solved this shape of problem, and what did they learn the hard way?" (pairs with the `research` side-tool when unknown). |
 | **Scale shock** | Re-read the draft at 10× and at 1/10th the expected usage — which sentence breaks first? |
+| **Assistive-tech walk** | Walk the primary path as a keyboard-only or screen-reader user — where does the idea silently assume a mouse, a screen, perfect vision? (The capture-time half of accessibility; the review-time half is the ui-ux module's.) |
 
 Retention: this catalog is data, not procedure — the *when* and the depth-choice
 entry live in the orchestrator's `## Elicitation` (one home each). Extend by adding
