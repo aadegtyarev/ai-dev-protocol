@@ -14,10 +14,6 @@ Format: [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/); versioni
 
 ## [5.4.1] — 2026-06-12
 
-### Removed
-
-- **`docs/contracts.md` and `docs/README.md`** — byte-identical copies of unfilled install templates (`src/templates/contracts.md`, `src/templates/README.md`); the dogfood repo's real contracts live under `docs/contracts/`. Duplication found by proactive audit.
-
 ### Fixed
 
 - **Stale comment in `src/adapter/modules.mjs`** — removed archaeology phrase "Slice 2 will branch on it" from `effectiveToggle` JSDoc; the historical build phase is long done.
