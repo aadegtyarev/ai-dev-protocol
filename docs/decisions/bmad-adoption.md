@@ -35,8 +35,8 @@ The three mechanics behind the Operator's experience:
   surface; honest residual recorded where it cannot.
 - **Not adopted:** the 12-agent roster (our three-role split with folds is the
   deliberate opposite), story-file pipelines (our plan file covers it), the
-  79-technique catalog size (a menu nobody reads is ceremony — we start at 12
-  and delete rows that go unpicked).
+  79-technique catalog size (a menu nobody reads is ceremony — we start at a
+  compact ~dozen and delete rows that go unpicked).
 
 **Evidence.** [BMAD-METHOD repo](https://github.com/bmad-code-org/BMAD-METHOD) ·
 [Advanced elicitation docs](https://docs.bmad-method.org/explanation/advanced-elicitation/) ·
