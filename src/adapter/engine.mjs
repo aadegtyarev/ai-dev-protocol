@@ -306,12 +306,14 @@ function productBriefFilled(root) {
 }
 // The project's rigor profile (ai-dev.config.json `profile`). Defaults to "solo"
 // on absent / unreadable / malformed / unknown value — proportionality by default
-// (PROTOCOL.md `## Project config`), a deliberate Operator decision, not fail-strict:
-// the ONLY predicate this gates is the orchestrator-content deny; the floor
-// predicates (tooling, boundary, truncation, merge-gate, stamp-write) never read
-// the profile, so the default widens no floor. Only an explicit "full" keeps the
-// strict lane. Same presence/value read within invariant 2 as projectConfigured —
-// never a write.
+// (PROTOCOL.md `## Project config`), a deliberate Operator decision, not fail-strict.
+// Predicates that read the profile:
+//   - orchestrator-content deny: relaxed on lite/solo/yolo (the original gate).
+//   - merge-gate: short-circuits (returns false) on yolo — the explicit gate-off.
+// All other floor predicates (tooling, boundary, truncation, stamp-write) do NOT
+// read the profile — the default ("solo") widens none of those floors.
+// Only an explicit "full" keeps the strict orchestrator-content lane.
+// Same presence/value read within invariant 2 as projectConfigured — never a write.
 function projectProfile(root) {
   try {
     const cfg = JSON.parse(fs.readFileSync(path.join(path.resolve(root), "ai-dev.config.json"), "utf8"));
