@@ -129,7 +129,7 @@ A platform's deny layer can **block a tool call** (and, on some platforms, **ask
 
 **Persona-only** (no deny is possible — these are reasoning acts):
 
-- Pipeline ordering and every positive act — *always* spawn the reviewer, *never* collapse the loop, *a plan precedes code*. The merge-gate is the downstream floor.
+- Pipeline ordering and every positive act — on guarantee profiles, *always* spawn the reviewer, *never* collapse the loop, *a plan precedes code*. The merge-gate is the downstream floor (on guarantee profiles). A `yolo` project explicitly opts out of both; the Operator's merge word remains.
 - Never self-substitute a crashed role's deliverable; retry the same spawn up to twice, then **stop and report to the Operator** — never synthesize the verdict, stamp, or merge.
 - Never fabricate a review stamp — the gate checks presence; the stamp-write deny adds authorship only where the platform resolves the actor (Claude stays persona).
 - Never present a stale on-disk artifact as this turn's fresh gate result.
