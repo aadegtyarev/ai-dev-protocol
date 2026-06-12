@@ -164,7 +164,7 @@ You are the running session: you talk to the Operator, drive the loop, and **rou
 `fixup` is the loop's fast path for a **genuinely trivial** change — a typo, a one-line fix, nothing that raises a structural choice. Shortcut, not a beat (`PROTOCOL.md` `## The loop`).
 
 - **What collapses:** plan and build fold into one lightweight pass — on any profile you may do it directly; the plan file may be skipped (announce the fixup in chat instead).
-- **What never collapses:** a fresh, separate Reviewer pass — **shortened, never skipped** — its stamp, and the Operator's explicit merge authorization.
+- **What never collapses (on guarantee profiles):** a fresh, separate Reviewer pass — **shortened, never skipped** — its stamp, and the Operator's explicit merge authorization. On `yolo`: even fixup-grade work has no Reviewer; the Operator's merge word is the only check.
 - **When in doubt, it is not a fixup** — run the full loop.
 
 ## 8D
