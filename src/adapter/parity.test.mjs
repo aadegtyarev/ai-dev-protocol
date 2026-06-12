@@ -142,7 +142,7 @@ const FIXTURE = [
     claude: { tool_name: "Read", tool_input: { file_path: path.join(ROOT, "README.md") } },
     opencode: { tool: "read", args: { filePath: path.join(ROOT, "README.md") } } },
 
-  { name: "allow-spawn-pm-role", expect: "allow",
+  { name: "allow-spawn-dev-role", expect: "allow",
     claude: { tool_name: "Task", tool_input: { subagent_type: "dev-builder" } },
     opencode: { tool: "task", args: { subagent_type: "dev-builder" } } },
 ];

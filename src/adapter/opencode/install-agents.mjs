@@ -64,11 +64,11 @@ export function install(outDir, config) {
 }
 
 // Run only when invoked directly (not when imported by a test for resolveModelPin /
-// install). Config path: the project's own ai-dev.config.json by default; AI_PM_CONFIG
+// install). Config path: the project's own ai-dev.config.json by default; AI_DEV_CONFIG
 // lets a test drive a fixture config without mutating the repo's real one.
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  const configPath = process.env.AI_PM_CONFIG
-    ? path.resolve(process.env.AI_PM_CONFIG)
+  const configPath = process.env.AI_DEV_CONFIG
+    ? path.resolve(process.env.AI_DEV_CONFIG)
     : path.join(ROOT, "ai-dev.config.json");
   const config = JSON.parse(fs.readFileSync(configPath, "utf8"));
   const outDir = process.argv[2] ? path.resolve(process.argv[2]) : path.join(ROOT, ".opencode", "agents");

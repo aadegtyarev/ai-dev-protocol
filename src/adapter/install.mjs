@@ -76,7 +76,7 @@ function ensureLine(file, line) {
 }
 
 // Run a vendored install script as a child process (node, argv array — no shell).
-// `env` overrides (e.g. AI_PM_CONFIG) layer onto the current environment.
+// `env` overrides (e.g. AI_DEV_CONFIG) layer onto the current environment.
 function runScript(scriptRelPath, args, target, env) {
   const script = path.join(target, ".ai-dev", "tooling", scriptRelPath);
   execFileSync("node", [script, ...args], {
@@ -145,7 +145,7 @@ function ensureConfig(target, platform) {
 // merge the deny hooks into .claude/settings.json (keyed so a re-run never
 // duplicates), and import the constitution + the orchestrator procedure via CLAUDE.md.
 function wireClaude(target) {
-  const cfg = { AI_PM_CONFIG: path.join(target, "ai-dev.config.json") };
+  const cfg = { AI_DEV_CONFIG: path.join(target, "ai-dev.config.json") };
   runScript(path.join("src", "adapter", "claude", "install-agents.mjs"), [path.join(target, ".claude", "agents")], target, cfg);
   runScript(path.join("src", "adapter", "claude", "install-commands.mjs"), [path.join(target, ".claude", "commands")], target, cfg);
 
@@ -194,7 +194,7 @@ function mergeHooks(existing, fragment) {
 // plugin (downstream layout, since the adapter is now vendored under .ai-dev/tooling/),
 // merge opencode.json keys, and import the constitution via AGENTS.md.
 function wireOpenCode(target) {
-  const cfg = { AI_PM_CONFIG: path.join(target, "ai-dev.config.json") };
+  const cfg = { AI_DEV_CONFIG: path.join(target, "ai-dev.config.json") };
   runScript(path.join("src", "adapter", "opencode", "install-agents.mjs"), [path.join(target, ".opencode", "agents")], target, cfg);
   runScript(path.join("src", "adapter", "opencode", "install-commands.mjs"), [path.join(target, ".opencode", "commands")], target, cfg);
   // The plugin generator resolves the adapter layout from the TARGET root (passed via
