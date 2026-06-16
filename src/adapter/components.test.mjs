@@ -1,10 +1,9 @@
 // Multi-repo components — the fail-CLOSED manifest loader/validator
 // (_internals.componentRoots in engine.mjs).
 //
-// Step 1 of the multi-repo-components epic: the validator EXISTS and is proven
-// fail-closed in ISOLATION — it is NOT yet wired into any deny predicate, so this
-// is a validator-level unit test, not the parity matrix (that lands in Step 2,
-// `.ai-dev/plans/multi-repo-components.md`).
+// This is the validator-level unit test (the loader/validator in isolation); the
+// boundary-wiring + per-root tooling carve-out are covered by the parity matrix in
+// parity.test.mjs (`.ai-dev/plans/multi-repo-components.md`).
 //
 // The load-bearing promise: on ANY doubt (absent / malformed / overbroad /
 // non-existent / wrong-shape) the permitted set collapses to the SINGLE session

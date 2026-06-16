@@ -163,6 +163,21 @@ function writesIntoNever(root, resolved, ow) {
   const rel = path.relative(path.resolve(root), resolved);
   return (ow?.never || []).some((e) => relMatches(rel, e));
 }
+// The `.ai-dev/tooling/` carve-out is the UNCONDITIONAL enforcer-source deny
+// (invariant 2). It must hold under EVERY declared component root, not just the
+// session root: a manifest must never widen INTO a sibling's tooling dir and
+// re-expose that sibling's enforcer. So this tests the never-list against EACH
+// root in the validated component set — true iff `resolved` is inside ANY root's
+// never-list (tooling) subtree. Used by (a) the self-patch WRITE deny
+// (writesIntoTooling), so a write into ANY root's tooling reports the meaningful
+// `self-patch-enforcer` ruleId per-root; and (b) the read/find boundary predicates
+// (pathOutsideRoot / findTargetOutsideRoot), which have no dedicated tooling rule
+// and so apply this carve-out themselves — tooling deny outranks the component-set
+// allow. With an invalid manifest componentRoots collapses to [sessionRoot], so the
+// sibling is wholly denied as out-of-boundary anyway; this stays fail-safe.
+function writesIntoAnyNever(root, resolved, ow) {
+  return componentRoots(root).some((r) => writesIntoNever(r, resolved, ow));
+}
 // Resolve the merge-gate topic from ANY branch, prefix stripped: the topic is the
 // branch name with its leading work-prefix dropped (feature/foo→foo, fix/bar→bar,
 // hotfix/x→x, a bare `topic`→topic). The ref named in the push/merge command
@@ -378,9 +393,10 @@ function projectProfile(root) {
 // widen the boundary to an attacker-chosen path. So it fails CLOSED — on ANY doubt
 // the set collapses to the single session root (byte-identical to today's behaviour).
 //
-// NOTE (Step 1): NOT yet wired into any deny predicate — isInsideRoot and the
-// boundary denies still test the single root. This function only LANDS the proven
-// fail-closed parser; the wiring is Step 2 (`.ai-dev/plans/multi-repo-components.md`).
+// The three project-boundary predicates (pathOutsideRoot / findTargetOutsideRoot /
+// writeTargetOutsideRoot) consult this set via isInsideAnyComponent; isInsideRoot
+// itself stays single-root, and the tooling/stamp/merge/truncation/orchestrator-content
+// denies stay session-root-anchored (only the boundary read/find/write denies widen).
 //
 // The manifest schema (one home: docs/architecture.md `## Components`): a non-empty
 // JSON array of objects, each { "root": "<rel path>", "role": "<str>", "stack": "<str>" }.
@@ -436,6 +452,24 @@ function componentRoots(root) {
   }
   return [...set];
 }
+// Boundary membership across the validated component SET (Step 2 wiring). A target
+// is inside the boundary iff it is inside ANY validated declared root. With no/invalid
+// manifest, componentRoots returns just [sessionRoot], so this is byte-identical to the
+// single-root isInsideRoot — the no-manifest regression tripwire. ONLY the three
+// project-boundary denies (pathOutsideRoot / findTargetOutsideRoot / writeTargetOutsideRoot)
+// call this; the stamp/merge/truncation/orchestrator-content denies stay anchored
+// to the session root via isInsideRoot (`.ai-dev/plans/multi-repo-components.md`).
+//
+// Tooling carve-out — NOT folded into this allow. Writes into ANY root's
+// `.ai-dev/tooling/` are owned by the dedicated self-patch deny (writesIntoTooling
+// → writesIntoAnyNever), so a tooling write reports the meaningful `self-patch-enforcer`
+// ruleId, per-root. Reads/finds have no dedicated tooling rule, so the read/find
+// boundary predicates apply the per-root tooling carve-out themselves
+// (writesIntoAnyNever) BEFORE the component-set allow — tooling deny outranks the
+// allow, so a declared sibling's tooling is denied on read/find exactly like a write.
+function isInsideAnyComponent(root, resolved) {
+  return componentRoots(root).some((r) => isInsideRoot(r, resolved));
+}
 
 // ── predicates: (input, config) => boolean ───────────────────────────────────
 // A predicate inspects only the neutral input + the rule data in config. The
@@ -449,18 +483,31 @@ function writeTargetsOf(input) {
   return [];
 }
 const PREDICATES = {
-  pathOutsideRoot(input) {
+  // Read/find: a target is outside the boundary if it is in NO declared root, OR it
+  // is inside ANY root's `.ai-dev/tooling/` carve-out (no dedicated tooling rule
+  // covers reads, so the per-root carve-out is applied here — tooling deny outranks
+  // the component-set allow, so a declared sibling's tooling is denied on read/find).
+  pathOutsideRoot(input, config) {
     const r = resolveTarget(input.root, input.path);
-    return !!r && !isInsideRoot(input.root, r);
+    if (!r) return false;
+    if (writesIntoAnyNever(input.root, r, config?.orchestrator_writable)) return true;
+    return !isInsideAnyComponent(input.root, r);
   },
-  findTargetOutsideRoot(input) {
+  findTargetOutsideRoot(input, config) {
     const p = findAbsolutePathArg(input.command);
-    return !!p && !isInsideRoot(input.root, path.resolve(p));
+    if (!p) return false;
+    const r = path.resolve(p);
+    if (writesIntoAnyNever(input.root, r, config?.orchestrator_writable)) return true;
+    return !isInsideAnyComponent(input.root, r);
   },
+  // Write: tooling writes are owned by the dedicated self-patch deny (writesIntoTooling,
+  // per-root), which reports `self-patch-enforcer` — so this boundary predicate stays a
+  // pure in-set membership test; a sibling's tooling write falls through here (sibling IS
+  // in the set) and is caught by writesIntoTooling with the meaningful ruleId.
   writeTargetOutsideRoot(input) {
     return writeTargetsOf(input).some((t) => {
       const r = resolveTarget(input.root, t);
-      return !!r && !isInsideRoot(input.root, r);
+      return !!r && !isInsideAnyComponent(input.root, r);
     });
   },
   emptyWriteOverNonEmpty(input) {
@@ -499,11 +546,17 @@ const PREDICATES = {
       return relMatches(path.relative(path.resolve(input.root), r), prefix);
     });
   },
+  // Self-patch deny — the `.ai-dev/tooling/` carve-out, PER-ROOT and unconditional:
+  // a write into ANY validated component root's tooling dir is denied, not just the
+  // session root's, so a manifest can never widen into a sibling's enforcer source
+  // (invariant 2). The boundary deny (writeTargetOutsideRoot) already catches a
+  // sibling-tooling write via the isInsideAnyComponent carve-out; this keeps the
+  // dedicated self-patch deny consistent with it for defense in depth.
   writesIntoTooling(input, config) {
     const ow = config.orchestrator_writable;
     return writeTargetsOf(input).some((t) => {
       const r = resolveTarget(input.root, t);
-      return !!r && writesIntoNever(input.root, r, ow);
+      return !!r && writesIntoAnyNever(input.root, r, ow);
     });
   },
   mergeWithUnstampedReview(input) {
