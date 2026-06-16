@@ -371,6 +371,72 @@ function projectProfile(root) {
   } catch { return "solo"; }
 }
 
+// ── multi-repo components: the fail-CLOSED manifest loader/validator ──────────
+// Reads .ai-dev/components.json from the session root and returns the set of
+// canonical absolute roots an agent may touch — ALWAYS including the session root.
+// This is the riskiest logic on the security floor: a crafted manifest must NEVER
+// widen the boundary to an attacker-chosen path. So it fails CLOSED — on ANY doubt
+// the set collapses to the single session root (byte-identical to today's behaviour).
+//
+// NOTE (Step 1): NOT yet wired into any deny predicate — isInsideRoot and the
+// boundary denies still test the single root. This function only LANDS the proven
+// fail-closed parser; the wiring is Step 2 (`.ai-dev/plans/multi-repo-components.md`).
+//
+// The manifest schema (one home: docs/architecture.md `## Components`): a non-empty
+// JSON array of objects, each { "root": "<rel path>", "role": "<str>", "stack": "<str>" }.
+// `root` is resolved RELATIVE TO the manifest's own directory (the session root),
+// canonicalised with path.resolve + fs.realpathSync (defeats symlink escapes).
+//
+// Fail-closed rules (every one collapses to the single root):
+//   • absent / unreadable file                         ⇒ single root
+//   • JSON parse failure                               ⇒ single root
+//   • shape not a non-empty array of valid root objects⇒ single root
+//   • a declared root that does not realpath to an
+//     EXISTING directory                               ⇒ WHOLE manifest rejected
+//   • an OVERBROAD root — resolves to a filesystem root,
+//     or to an ancestor of / the session root itself   ⇒ WHOLE manifest rejected
+// Rejection is ALL-OR-NOTHING: one bad entry rejects the whole manifest, never a
+// partial honour (a partial honour is a fail-open seam — plan-adversary inversion).
+function isFilesystemRoot(p) {
+  return path.dirname(p) === p; // "/" on POSIX, "C:\\" on Windows — dirname is itself
+}
+// `ancestor` is an ancestor of (or equal to) `descendant`. Both must be canonical
+// absolute paths. Used to reject a declared root that contains the session root —
+// widening to a parent would re-expose everything above the work, including the
+// enforcer's own tree.
+function isAncestorOrEqual(ancestor, descendant) {
+  return descendant === ancestor || descendant.startsWith(ancestor + path.sep);
+}
+function componentRoots(root) {
+  const sessionRoot = path.resolve(root);
+  const single = [sessionRoot];
+  let text;
+  try {
+    text = fs.readFileSync(path.join(sessionRoot, ".ai-dev", "components.json"), "utf8");
+  } catch { return single; } // absent / unreadable ⇒ fail closed
+  let parsed;
+  try { parsed = JSON.parse(text); } catch { return single; } // unparseable ⇒ fail closed
+  if (!Array.isArray(parsed) || parsed.length === 0) return single; // wrong/empty shape ⇒ fail closed
+  const set = new Set([sessionRoot]);
+  for (const entry of parsed) {
+    if (!entry || typeof entry !== "object" || Array.isArray(entry)) return single; // not a root object
+    if (typeof entry.root !== "string" || entry.root.length === 0) return single; // missing/blank root
+    // Resolve RELATIVE TO the manifest dir (the session root), then canonicalise
+    // through realpath so a symlinked declared root cannot escape to /etc.
+    let canon;
+    try { canon = fs.realpathSync(path.resolve(sessionRoot, entry.root)); }
+    catch { return single; } // does not resolve to an existing path ⇒ reject whole manifest
+    let stat;
+    try { stat = fs.statSync(canon); } catch { return single; }
+    if (!stat.isDirectory()) return single; // must be an existing DIRECTORY
+    // OVERBROAD guards — reject the whole manifest (never partially honour):
+    if (isFilesystemRoot(canon)) return single; // a filesystem root
+    if (isAncestorOrEqual(canon, sessionRoot)) return single; // ancestor of / equal to the session root
+    set.add(canon);
+  }
+  return [...set];
+}
+
 // ── predicates: (input, config) => boolean ───────────────────────────────────
 // A predicate inspects only the neutral input + the rule data in config. The
 // `actor` signal (isOrchestrator) is supplied by the shim where the platform
@@ -533,4 +599,4 @@ export function evaluate(input, config) {
   return ask || { verdict: "allow", ruleId: null, reason: "" };
 }
 
-export const _internals = { bashWriteTargets, isOrchestratorAuthorable, resolveMergeTopic, reviewStampSatisfied, stripHeredocBodies, projectProfile, PREDICATES };
+export const _internals = { bashWriteTargets, isOrchestratorAuthorable, resolveMergeTopic, reviewStampSatisfied, stripHeredocBodies, projectProfile, componentRoots, PREDICATES };
